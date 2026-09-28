@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: offline-billing-backend
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    expiration-ms: 86400000 # 24 hours
+  admin:
+    initial-password: ${ADMIN_INITIAL_PASSWORD:Admin@Offline123}
