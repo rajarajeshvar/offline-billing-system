@@ -23,17 +23,17 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({ invoice, c
           justifyContent: 'space-between',
           padding: '16px 20px',
           background: 'var(--bg-tertiary)',
-          color: '#ffffff',
+          color: 'var(--text-primary)',
           borderTopLeftRadius: 'var(--radius-xl)',
           borderTopRightRadius: 'var(--radius-xl)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CheckCircle size={20} color="var(--accent-emerald)" />
+            <CheckCircle size={20} color="var(--text-primary)" />
             <strong style={{ fontSize: '1rem' }}>Invoice Generated #{invoice.invoiceNumber}</strong>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
           >
             <X size={20} />
           </button>
@@ -107,7 +107,7 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({ invoice, c
               <span>₹{invoice.subtotal.toFixed(2)}</span>
             </div>
             {invoice.discountTotal > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#b91c1c' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#000000', fontWeight: 600 }}>
                 <span>Discount Total:</span>
                 <span>-₹{invoice.discountTotal.toFixed(2)}</span>
               </div>
@@ -159,8 +159,8 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({ invoice, c
           display: 'flex',
           gap: '12px',
           padding: '16px 20px',
-          background: '#f9fafb',
-          borderTop: '1px solid #e5e7eb',
+          background: 'var(--bg-tertiary)',
+          borderTop: '1px solid var(--border-color)',
           borderBottomLeftRadius: 'var(--radius-xl)',
           borderBottomRightRadius: 'var(--radius-xl)'
         }}>
@@ -174,7 +174,7 @@ export const InvoicePrintModal: React.FC<InvoicePrintModalProps> = ({ invoice, c
           <button
             onClick={onClose}
             className="btn btn-secondary"
-            style={{ background: '#e5e7eb', color: '#374151' }}
+            style={{ padding: '12px 20px' }}
           >
             Done
           </button>

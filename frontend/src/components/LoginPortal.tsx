@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Delete,
   Sparkles,
+  X,
 } from 'lucide-react';
 import {
   AuthSession,
@@ -32,6 +33,7 @@ interface LoginPortalProps {
   isLiveDb: boolean;
   onLoginSuccess: (session: AuthSession) => void;
   onUnlockSuccess: () => void;
+  onClose?: () => void;
 }
 
 export const LoginPortal: React.FC<LoginPortalProps> = ({
@@ -40,6 +42,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
   isLiveDb,
   onLoginSuccess,
   onUnlockSuccess,
+  onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<'cashier' | 'admin'>('cashier');
   const [selectedCashier, setSelectedCashier] = useState<CashierAccount | null>(
@@ -194,6 +197,35 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
     window.location.reload();
   };
 
+  // Clean initials generator (handles "Rajan (Administrator)" cleanly -> "RA" instead of "R(")
+  const getCleanInitials = (name?: string) => {
+    if (!name) return 'OP';
+    const clean = name.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+    const parts = clean.split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return 'OP';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  // Close / Exit to Dashboard handler
+  const handleDismissToDashboard = () => {
+    setTerminalLocked(false);
+    if (onClose) {
+      onClose();
+    } else if (onUnlockSuccess) {
+      onUnlockSuccess();
+    }
+    // If user somehow doesn't have an active session yet, log them in as default user so dashboard opens
+    if (!currentSession) {
+      const defaultUser = PRESET_USERS[0];
+      loginWithCredentials(defaultUser.username, defaultUser.password || '').then((res) => {
+        if (res.success && res.session) {
+          onLoginSuccess(res.session);
+        }
+      });
+    }
+  };
+
   // Quick Demo Login helper
   const handleQuickLogin = (user: CashierAccount) => {
     if (user.role === 'BILLER') {
@@ -220,7 +252,9 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f172a 50%, #030712 100%)',
+        background: 'rgba(0, 0, 0, 0.45)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -229,43 +263,16 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
         overflowY: 'auto',
       }}
     >
-      {/* Background glow effects */}
-      <div
-        style={{
-          position: 'absolute',
-          width: '500px',
-          height: '500px',
-          borderRadius: '50%',
-          background: 'rgba(59, 130, 246, 0.08)',
-          filter: 'blur(100px)',
-          pointerEvents: 'none',
-          top: '10%',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          width: '450px',
-          height: '450px',
-          borderRadius: '50%',
-          background: 'rgba(139, 92, 246, 0.08)',
-          filter: 'blur(100px)',
-          pointerEvents: 'none',
-          bottom: '10%',
-        }}
-      />
-
       {/* Main Container */}
       <div
         style={{
           position: 'relative',
           width: '100%',
           maxWidth: isLocked ? '480px' : '780px',
-          background: 'rgba(17, 24, 39, 0.85)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          background: '#ffffff',
+          border: '1px solid #e4e4e7',
           borderRadius: '24px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(59, 130, 246, 0.1)',
+          boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.15)',
           overflow: 'hidden',
           transition: 'all 0.3s ease',
         }}
@@ -273,34 +280,35 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
         {/* Top Header Bar */}
         <div
           style={{
-            padding: '24px 32px 18px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            padding: '20px 24px 18px',
+            borderBottom: '1px solid #e4e4e7',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '16px',
+            gap: '14px',
+            background: '#f8fafc',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div
               style={{
-                width: '44px',
-                height: '44px',
+                width: '42px',
+                height: '42px',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                background: '#000000',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
               }}
             >
-              {isLocked ? <Lock size={22} color="#fff" /> : <ShieldCheck size={22} color="#fff" />}
+              {isLocked ? <Lock size={20} color="#ffffff" /> : <ShieldCheck size={20} color="#ffffff" />}
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#09090b', margin: 0, letterSpacing: '-0.02em' }}>
                 {isLocked ? 'Terminal Locked' : 'Offline Billing Portal'}
               </h2>
-              <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '3px 0 0' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '2px 0 0' }}>
                 {isLocked
                   ? 'Enter PIN or password to resume shift'
                   : 'Select Cashier for fast POS access or login as Administrator'}
@@ -308,24 +316,57 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
             </div>
           </div>
 
-          {/* Connection Status Badge */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              background: isLiveDb ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-              border: isLiveDb ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: isLiveDb ? '#34d399' : '#fbbf24',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {isLiveDb ? <Database size={13} /> : <WifiOff size={13} />}
-            <span>{isLiveDb ? 'PostgreSQL Live' : 'Offline Terminal'}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Connection Status Badge */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '5px 11px',
+                borderRadius: '20px',
+                background: '#ffffff',
+                border: '1px solid #e4e4e7',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: '#09090b',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isLiveDb ? <Database size={12} /> : <WifiOff size={12} />}
+              <span>{isLiveDb ? 'PostgreSQL Live' : 'Offline Terminal'}</span>
+            </div>
+
+            {/* Close Button to return to dashboard */}
+            <button
+              onClick={handleDismissToDashboard}
+              title="Close and return to Dashboard"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '34px',
+                height: '34px',
+                borderRadius: '10px',
+                background: '#ffffff',
+                border: '1px solid #e4e4e7',
+                color: '#09090b',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#000000';
+                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.borderColor = '#000000';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#09090b';
+                e.currentTarget.style.borderColor = '#e4e4e7';
+              }}
+            >
+              <X size={18} />
+            </button>
           </div>
         </div>
 
@@ -338,26 +379,22 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                 width: '74px',
                 height: '74px',
                 borderRadius: '50%',
-                background: lockedUser?.avatarBg || 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                background: '#000000',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#fff',
+                color: '#ffffff',
                 fontSize: '1.75rem',
                 fontWeight: 800,
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)',
                 marginBottom: '14px',
+                border: '2px solid #000000',
               }}
             >
-              {currentSession?.employeeName
-                ?.split(' ')
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase() || 'OP'}
+              {getCleanInitials(currentSession?.employeeName)}
             </div>
 
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff', margin: 0 }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#09090b', margin: 0 }}>
               {currentSession?.employeeName || 'Active Operator'}
             </h3>
             <div
@@ -367,11 +404,12 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                 gap: '6px',
                 padding: '3px 10px',
                 borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.08)',
-                color: '#94a3b8',
+                background: '#f4f4f5',
+                color: 'var(--text-secondary)',
                 fontSize: '0.75rem',
                 marginTop: '6px',
                 fontWeight: 600,
+                border: '1px solid #e4e4e7',
               }}
             >
               <span>{currentSession?.role || 'BILLER'}</span>
@@ -387,9 +425,9 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                   marginTop: '18px',
                   padding: '10px 14px',
                   borderRadius: '10px',
-                  background: 'rgba(239, 68, 68, 0.15)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  color: '#f87171',
+                  background: '#f4f4f5',
+                  border: '1px solid #e4e4e7',
+                  color: '#09090b',
                   fontSize: '0.825rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -410,9 +448,8 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                     width: '18px',
                     height: '18px',
                     borderRadius: '50%',
-                    border: '2px solid rgba(255, 255, 255, 0.3)',
-                    background: pin.length > idx ? '#60a5fa' : 'transparent',
-                    boxShadow: pin.length > idx ? '0 0 12px rgba(96, 165, 250, 0.6)' : 'none',
+                    border: '2px solid #000000',
+                    background: pin.length > idx ? '#000000' : 'transparent',
                     transition: 'all 0.15s ease',
                   }}
                 />
@@ -437,16 +474,24 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                   style={{
                     height: '52px',
                     borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: '#fff',
+                    border: '1px solid #e4e4e7',
+                    background: '#f8fafc',
+                    color: '#09090b',
                     fontSize: '1.25rem',
                     fontWeight: 700,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#000000';
+                    e.currentTarget.style.color = '#ffffff';
+                    e.currentTarget.style.borderColor = '#000000';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#f8fafc';
+                    e.currentTarget.style.color = '#09090b';
+                    e.currentTarget.style.borderColor = '#e4e4e7';
+                  }}
                 >
                   {digit}
                 </button>
@@ -456,9 +501,9 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                 style={{
                   height: '52px',
                   borderRadius: '12px',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  color: '#f87171',
+                  border: '1px solid #e4e4e7',
+                  background: '#f4f4f5',
+                  color: '#09090b',
                   fontSize: '0.85rem',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -471,12 +516,23 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                 style={{
                   height: '52px',
                   borderRadius: '12px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  color: '#fff',
+                  border: '1px solid #e4e4e7',
+                  background: '#f8fafc',
+                  color: '#09090b',
                   fontSize: '1.25rem',
                   fontWeight: 700,
                   cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#000000';
+                  e.currentTarget.style.color = '#ffffff';
+                  e.currentTarget.style.borderColor = '#000000';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#f8fafc';
+                  e.currentTarget.style.color = '#09090b';
+                  e.currentTarget.style.borderColor = '#e4e4e7';
                 }}
               >
                 0
@@ -486,9 +542,9 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                 style={{
                   height: '52px',
                   borderRadius: '12px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  color: '#94a3b8',
+                  border: '1px solid #e4e4e7',
+                  background: '#f4f4f5',
+                  color: '#09090b',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -507,9 +563,9 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                 width: '100%',
                 padding: '12px',
                 borderRadius: '12px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                color: '#fff',
+                border: '1px solid #000000',
+                background: '#000000',
+                color: '#ffffff',
                 fontSize: '0.95rem',
                 fontWeight: 700,
                 cursor: pin.length >= 4 ? 'pointer' : 'not-allowed',
@@ -518,11 +574,44 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
               }}
             >
               <Unlock size={18} />
               <span>{isLoading ? 'Verifying PIN...' : 'Unlock Terminal'}</span>
+            </button>
+
+            {/* Return to Dashboard Button */}
+            <button
+              onClick={handleDismissToDashboard}
+              style={{
+                width: '100%',
+                marginTop: '10px',
+                padding: '11px',
+                borderRadius: '12px',
+                border: '1px solid #e4e4e7',
+                background: '#ffffff',
+                color: '#09090b',
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f4f4f5';
+                e.currentTarget.style.borderColor = '#000000';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.borderColor = '#e4e4e7';
+              }}
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Dashboard</span>
             </button>
 
             {/* Switch Operator */}
@@ -532,7 +621,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                 marginTop: '16px',
                 background: 'transparent',
                 border: 'none',
-                color: '#94a3b8',
+                color: 'var(--text-muted)',
                 fontSize: '0.825rem',
                 cursor: 'pointer',
                 textDecoration: 'underline',
@@ -548,8 +637,8 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
             <div
               style={{
                 display: 'flex',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                background: 'rgba(0, 0, 0, 0.2)',
+                borderBottom: '1px solid #e4e4e7',
+                background: '#f8fafc',
               }}
             >
               <button
@@ -561,17 +650,17 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                   flex: 1,
                   padding: '16px',
                   border: 'none',
-                  background: activeTab === 'cashier' ? 'rgba(59, 130, 246, 0.12)' : 'transparent',
-                  borderBottom: activeTab === 'cashier' ? '2px solid #3b82f6' : '2px solid transparent',
-                  color: activeTab === 'cashier' ? '#60a5fa' : '#94a3b8',
+                  background: activeTab === 'cashier' ? '#ffffff' : 'transparent',
+                  borderBottom: activeTab === 'cashier' ? '2px solid #000000' : '2px solid transparent',
+                  color: activeTab === 'cashier' ? '#000000' : 'var(--text-secondary)',
                   fontSize: '0.95rem',
-                  fontWeight: 700,
+                  fontWeight: 800,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
+                  transition: 'all 0.18s ease',
                 }}
               >
                 <UserCheck size={18} />
@@ -586,17 +675,17 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                   flex: 1,
                   padding: '16px',
                   border: 'none',
-                  background: activeTab === 'admin' ? 'rgba(139, 92, 246, 0.12)' : 'transparent',
-                  borderBottom: activeTab === 'admin' ? '2px solid #8b5cf6' : '2px solid transparent',
-                  color: activeTab === 'admin' ? '#a78bfa' : '#94a3b8',
+                  background: activeTab === 'admin' ? '#ffffff' : 'transparent',
+                  borderBottom: activeTab === 'admin' ? '2px solid #000000' : '2px solid transparent',
+                  color: activeTab === 'admin' ? '#000000' : 'var(--text-secondary)',
                   fontSize: '0.95rem',
-                  fontWeight: 700,
+                  fontWeight: 800,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
+                  transition: 'all 0.18s ease',
                 }}
               >
                 <ShieldCheck size={18} />
@@ -636,7 +725,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                       display: 'block',
                       fontSize: '0.8rem',
                       fontWeight: 700,
-                      color: '#94a3b8',
+                      color: '#52525b',
                       marginBottom: '12px',
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
@@ -661,14 +750,11 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                             gap: '14px',
                             padding: '12px 16px',
                             borderRadius: '14px',
-                            background: isSelected
-                              ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.1))'
-                              : 'rgba(255, 255, 255, 0.03)',
-                            border: isSelected
-                              ? '1.5px solid #3b82f6'
-                              : '1px solid rgba(255, 255, 255, 0.06)',
+                            background: isSelected ? '#09090b' : '#ffffff',
+                            border: isSelected ? '1.5px solid #000000' : '1px solid #e4e4e7',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
+                            boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.12)' : '0 1px 3px rgba(0, 0, 0, 0.04)',
                           }}
                         >
                           <div
@@ -676,14 +762,15 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                               width: '42px',
                               height: '42px',
                               borderRadius: '50%',
-                              background: cashier.avatarBg,
+                              background: isSelected ? '#ffffff' : '#09090b',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              color: '#fff',
-                              fontWeight: 700,
+                              color: isSelected ? '#000000' : '#ffffff',
+                              fontWeight: 800,
                               fontSize: '0.95rem',
-                              boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+                              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+                              border: isSelected ? '1px solid #ffffff' : '1px solid #e4e4e7',
                             }}
                           >
                             {cashier.name
@@ -694,7 +781,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ fontWeight: 700, color: '#fff', fontSize: '0.95rem' }}>
+                              <span style={{ fontWeight: 700, color: isSelected ? '#ffffff' : '#09090b', fontSize: '0.95rem' }}>
                                 {cashier.name}
                               </span>
                               <span
@@ -702,22 +789,20 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                                   fontSize: '0.68rem',
                                   padding: '2px 6px',
                                   borderRadius: '6px',
-                                  background:
-                                    cashier.role === 'MANAGER'
-                                      ? 'rgba(245, 158, 11, 0.15)'
-                                      : 'rgba(16, 185, 129, 0.15)',
-                                  color: cashier.role === 'MANAGER' ? '#fbbf24' : '#34d399',
-                                  fontWeight: 600,
+                                  background: isSelected ? 'rgba(255, 255, 255, 0.2)' : '#f4f4f5',
+                                  color: isSelected ? '#ffffff' : '#52525b',
+                                  fontWeight: 700,
+                                  border: isSelected ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #e4e4e7',
                                 }}
                               >
                                 {cashier.role}
                               </span>
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
+                            <div style={{ fontSize: '0.75rem', color: isSelected ? '#d4d4d8' : '#71717a', marginTop: '2px' }}>
                               {cashier.shift}
                             </div>
                           </div>
-                          {isSelected && <CheckCircle2 size={18} color="#3b82f6" />}
+                          {isSelected && <CheckCircle2 size={18} color="#ffffff" />}
                         </div>
                       );
                     })}
@@ -731,15 +816,15 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    background: 'rgba(0, 0, 0, 0.25)',
+                    background: '#fafafa',
                     padding: '20px',
                     borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    border: '1px solid #e4e4e7',
                   }}
                 >
                   <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-                      Enter 4-digit PIN for <strong style={{ color: '#fff' }}>{selectedCashier?.name}</strong>
+                    <div style={{ fontSize: '0.85rem', color: '#52525b' }}>
+                      Enter 4-digit PIN for <strong style={{ color: '#09090b' }}>{selectedCashier?.name}</strong>
                     </div>
                   </div>
 
@@ -752,9 +837,8 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                           width: '16px',
                           height: '16px',
                           borderRadius: '50%',
-                          border: '2px solid rgba(255, 255, 255, 0.3)',
-                          background: pin.length > idx ? '#10b981' : 'transparent',
-                          boxShadow: pin.length > idx ? '0 0 10px rgba(16, 185, 129, 0.6)' : 'none',
+                          border: '2px solid #09090b',
+                          background: pin.length > idx ? '#09090b' : 'transparent',
                           transition: 'all 0.15s ease',
                         }}
                       />
@@ -779,12 +863,13 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                         style={{
                           height: '46px',
                           borderRadius: '10px',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          color: '#fff',
+                          border: '1px solid #e4e4e7',
+                          background: '#ffffff',
+                          color: '#09090b',
                           fontSize: '1.15rem',
                           fontWeight: 700,
                           cursor: 'pointer',
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                         }}
                       >
                         {digit}
@@ -795,11 +880,11 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                       style={{
                         height: '46px',
                         borderRadius: '10px',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        color: '#f87171',
+                        border: '1px solid #e4e4e7',
+                        background: '#f4f4f5',
+                        color: '#09090b',
                         fontSize: '0.78rem',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         cursor: 'pointer',
                       }}
                     >
@@ -810,12 +895,13 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                       style={{
                         height: '46px',
                         borderRadius: '10px',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        color: '#fff',
+                        border: '1px solid #e4e4e7',
+                        background: '#ffffff',
+                        color: '#09090b',
                         fontSize: '1.15rem',
                         fontWeight: 700,
                         cursor: 'pointer',
+                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                       }}
                     >
                       0
@@ -825,9 +911,9 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                       style={{
                         height: '46px',
                         borderRadius: '10px',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        color: '#94a3b8',
+                        border: '1px solid #e4e4e7',
+                        background: '#f4f4f5',
+                        color: '#09090b',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -845,17 +931,18 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                       width: '100%',
                       padding: '12px',
                       borderRadius: '12px',
-                      border: 'none',
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      color: '#fff',
+                      border: '1px solid #000000',
+                      background: '#000000',
+                      color: '#ffffff',
                       fontSize: '0.9rem',
-                      fontWeight: 700,
+                      fontWeight: 800,
                       cursor: pin.length >= 4 ? 'pointer' : 'not-allowed',
                       opacity: pin.length >= 4 ? 1 : 0.5,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
                     }}
                   >
                     <Unlock size={16} />
@@ -874,7 +961,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                         display: 'block',
                         fontSize: '0.8rem',
                         fontWeight: 700,
-                        color: '#94a3b8',
+                        color: '#52525b',
                         marginBottom: '8px',
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
@@ -892,16 +979,16 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                           width: '100%',
                           padding: '12px 14px 12px 40px',
                           borderRadius: '12px',
-                          border: '1px solid rgba(255, 255, 255, 0.12)',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          color: '#fff',
+                          border: '1px solid #d4d4d8',
+                          background: '#ffffff',
+                          color: '#09090b',
                           fontSize: '0.95rem',
                           outline: 'none',
                         }}
                       />
                       <User
                         size={18}
-                        color="#94a3b8"
+                        color="#71717a"
                         style={{ position: 'absolute', left: '13px', top: '14px' }}
                       />
                     </div>
@@ -914,7 +1001,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                         display: 'block',
                         fontSize: '0.8rem',
                         fontWeight: 700,
-                        color: '#94a3b8',
+                        color: '#52525b',
                         marginBottom: '8px',
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
@@ -932,16 +1019,16 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                           width: '100%',
                           padding: '12px 42px 12px 40px',
                           borderRadius: '12px',
-                          border: '1px solid rgba(255, 255, 255, 0.12)',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          color: '#fff',
+                          border: '1px solid #d4d4d8',
+                          background: '#ffffff',
+                          color: '#09090b',
                           fontSize: '0.95rem',
                           outline: 'none',
                         }}
                       />
                       <KeyRound
                         size={18}
-                        color="#94a3b8"
+                        color="#71717a"
                         style={{ position: 'absolute', left: '13px', top: '14px' }}
                       />
                       <button
@@ -953,7 +1040,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                           top: '12px',
                           background: 'transparent',
                           border: 'none',
-                          color: '#94a3b8',
+                          color: '#71717a',
                           cursor: 'pointer',
                         }}
                       >
@@ -970,17 +1057,17 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                       width: '100%',
                       padding: '13px',
                       borderRadius: '12px',
-                      border: 'none',
-                      background: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
-                      color: '#fff',
+                      border: '1px solid #000000',
+                      background: '#000000',
+                      color: '#ffffff',
                       fontSize: '0.95rem',
-                      fontWeight: 700,
+                      fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px',
-                      boxShadow: '0 4px 16px rgba(139, 92, 246, 0.4)',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
                     }}
                   >
                     <ShieldCheck size={18} />
@@ -994,8 +1081,8 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
             <div
               style={{
                 padding: '16px 32px 20px',
-                background: 'rgba(0, 0, 0, 0.3)',
-                borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                background: '#fafafa',
+                borderTop: '1px solid #e4e4e7',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -1003,8 +1090,8 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                 gap: '10px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#94a3b8' }}>
-                <Sparkles size={14} color="#f59e0b" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#52525b' }}>
+                <Sparkles size={14} color="#09090b" />
                 <span>Quick Test Logins:</span>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -1018,11 +1105,11 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                       gap: '6px',
                       padding: '5px 10px',
                       borderRadius: '8px',
-                      background: 'rgba(255, 255, 255, 0.06)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#cbd5e1',
+                      background: '#ffffff',
+                      border: '1px solid #e4e4e7',
+                      color: '#09090b',
                       fontSize: '0.725rem',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       cursor: 'pointer',
                     }}
                   >
@@ -1031,12 +1118,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
                         width: '7px',
                         height: '7px',
                         borderRadius: '50%',
-                        background:
-                          user.role === 'ADMIN'
-                            ? '#a855f7'
-                            : user.role === 'MANAGER'
-                            ? '#f59e0b'
-                            : '#10b981',
+                        background: '#09090b',
                       }}
                     />
                     <span>

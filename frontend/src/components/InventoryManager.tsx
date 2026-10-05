@@ -167,7 +167,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
         <div className="glass-panel" style={{ padding: '16px' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Total Catalog Items</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
             {products.length}
           </div>
         </div>
@@ -236,7 +236,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                 return (
                   <tr key={product.id}>
                     <td>
-                      <div style={{ fontWeight: 600, color: '#fff' }}>{product.name}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{product.name}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         SKU: <span className="mono">{product.sku}</span> | Barcode: {product.barcode || 'N/A'}
                       </div>
@@ -245,7 +245,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     <td style={{ textAlign: 'right' }} className="mono">
                       ₹{product.costPrice.toFixed(2)}
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--accent-blue)' }} className="mono">
+                    <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--text-primary)' }} className="mono">
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '5px' }}>
                         <span>₹{product.sellingPrice.toFixed(2)}</span>
                         {isAdminOrManager && (
@@ -254,7 +254,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                             style={{
                               background: 'transparent',
                               border: 'none',
-                              color: '#94a3b8',
+                              color: 'var(--text-secondary)',
                               cursor: 'pointer',
                               padding: '2px 4px',
                               display: 'inline-flex',
@@ -269,7 +269,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                       </div>
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: isOut ? 'var(--accent-rose)' : isLow ? 'var(--accent-amber)' : 'var(--accent-emerald)' }} className="mono">
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }} className="mono">
                         {product.currentStock} {product.unitSymbol}
                       </div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
@@ -294,9 +294,9 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                             style={{
                               padding: '5px 10px',
                               fontSize: '0.75rem',
-                              background: 'rgba(59, 130, 246, 0.12)',
-                              borderColor: 'rgba(59, 130, 246, 0.3)',
-                              color: '#60a5fa',
+                              background: '#f4f4f5',
+                              borderColor: '#e4e4e7',
+                              color: 'var(--text-primary)',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
@@ -328,7 +328,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
       {isAdjustModalOpen && selectedProduct && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '450px', padding: '24px' }}>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
               Adjust Inventory Stock
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
@@ -404,7 +404,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
       {isAddProductModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '600px', padding: '24px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '16px' }}>
               Create New Catalog Product
             </h2>
 
@@ -559,8 +559,8 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '480px', padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Tag size={18} color="#60a5fa" />
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Tag size={18} color="var(--text-primary)" />
                 <span>Adjust Product Pricing</span>
               </h2>
               <span className="badge badge-paid" style={{ fontSize: '0.7rem' }}>Admin / Manager Override</span>
@@ -570,7 +570,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
             </p>
 
             {priceError && (
-              <div style={{ marginBottom: '14px', padding: '8px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', fontSize: '0.8rem' }}>
+              <div style={{ marginBottom: '14px', padding: '8px 12px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', fontSize: '0.8rem' }}>
                 {priceError}
               </div>
             )}
@@ -589,7 +589,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     className="input-field mono"
                     value={editSellingPrice}
                     onChange={(e) => setEditSellingPrice(e.target.value)}
-                    style={{ fontSize: '1.05rem', fontWeight: 700, color: '#60a5fa' }}
+                    style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}
                   />
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                     Current: ₹{priceProduct.sellingPrice.toFixed(2)}
@@ -626,24 +626,24 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                   <div style={{
                     padding: '12px 16px',
                     borderRadius: '12px',
-                    background: isProfitable ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
-                    border: isProfitable ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(239, 68, 68, 0.25)',
+                    background: '#fafafa',
+                    border: '1px solid #e4e4e7',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <TrendingUp size={18} color={isProfitable ? '#34d399' : '#f87171'} />
+                      <TrendingUp size={18} color="var(--text-primary)" />
                       <div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ESTIMATED GROSS PROFIT</div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 700, color: isProfitable ? '#34d399' : '#f87171' }} className="mono">
+                        <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }} className="mono">
                           {profit >= 0 ? '+' : ''}₹{profit.toFixed(2)} / unit
                         </div>
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>PROFIT MARGIN</div>
-                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: isProfitable ? '#34d399' : '#f87171' }} className="mono">
+                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }} className="mono">
                         {marginPct.toFixed(1)}%
                       </div>
                     </div>

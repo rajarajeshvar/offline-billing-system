@@ -1,4 +1,4 @@
-import { Customer, Invoice, Payment, Product, StockMovement } from './types';
+import { Customer, CustomerSummary, Invoice, Payment, Product, StockMovement } from './types';
 
 const API_BASE = '/api/v1';
 
@@ -33,7 +33,7 @@ export const PRESET_USERS: CashierAccount[] = [
     role: 'BILLER',
     pin: '1234',
     password: 'Cashier@123',
-    avatarBg: 'linear-gradient(135deg, #10b981, #059669)',
+    avatarBg: 'linear-gradient(135deg, #27272a, #09090b)',
     shift: 'Morning Shift • Terminal 01',
     designation: 'Senior Cashier / Biller',
   },
@@ -44,7 +44,7 @@ export const PRESET_USERS: CashierAccount[] = [
     role: 'BILLER',
     pin: '5678',
     password: 'Cashier@123',
-    avatarBg: 'linear-gradient(135deg, #06b6d4, #0284c7)',
+    avatarBg: 'linear-gradient(135deg, #3f3f46, #18181b)',
     shift: 'Evening Shift • Terminal 01',
     designation: 'Billing Associate',
   },
@@ -55,7 +55,7 @@ export const PRESET_USERS: CashierAccount[] = [
     role: 'ADMIN',
     pin: '9999',
     password: 'Admin@Offline123',
-    avatarBg: 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+    avatarBg: 'linear-gradient(135deg, #ffffff, #d4d4d8)',
     shift: 'All Day • Full Access',
     designation: 'System Administrator',
   },
@@ -66,7 +66,7 @@ export const PRESET_USERS: CashierAccount[] = [
     role: 'MANAGER',
     pin: '4321',
     password: 'Manager@123',
-    avatarBg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+    avatarBg: 'linear-gradient(135deg, #52525b, #27272a)',
     shift: 'General Shift • Store Supervisor',
     designation: 'Store Manager',
   },
@@ -410,14 +410,20 @@ export async function updateLiveProductPrice(
 }
 
 // 4. Customers
-export async function fetchLiveCustomers(query?: string): Promise<Customer[] | null> {
+export async function fetchLiveCustomers(
+  query?: string,
+  type?: 'B2C' | 'B2B',
+  segment?: 'SMALL' | 'LARGE'
+): Promise<Customer[] | null> {
   try {
     const headers = await getAuthHeaders();
-    const url = query
-      ? `${API_BASE}/customers?query=${encodeURIComponent(query)}&size=100`
-      : `${API_BASE}/customers?size=100`;
+    const params = new URLSearchParams();
+    if (query) params.append('query', query.trim());
+    if (type) params.append('type', type);
+    if (segment) params.append('segment', segment);
+    params.append('size', '100');
 
-    const res = await fetch(url, { headers });
+    const res = await fetch(`${API_BASE}/customers?${params.toString()}`, { headers });
     if (!res.ok) return null;
 
     const data = await res.json();
@@ -426,7 +432,11 @@ export async function fetchLiveCustomers(query?: string): Promise<Customer[] | n
     return list.map((item: any) => ({
       id: Number(item.id),
       customerCode: item.customerCode || undefined,
+      customerType: (item.customerType || 'B2C') as 'B2C' | 'B2B',
+      customerSegment: (item.customerSegment || 'SMALL') as 'SMALL' | 'LARGE',
       name: item.name,
+      companyName: item.companyName || undefined,
+      contactPerson: item.contactPerson || undefined,
       phone: item.phone || undefined,
       email: item.email || undefined,
       addressLine1: item.addressLine1 || undefined,
@@ -435,7 +445,11 @@ export async function fetchLiveCustomers(query?: string): Promise<Customer[] | n
       state: item.state || undefined,
       stateCode: item.stateCode || undefined,
       pincode: item.pincode || undefined,
+      shippingAddress: item.shippingAddress || undefined,
       gstin: item.gstin || undefined,
+      gstRegistered: Boolean(item.gstRegistered),
+      defaultDiscountPercentage: Number(item.defaultDiscountPercentage || 0),
+      notes: item.notes || undefined,
       isActive: Boolean(item.isActive),
     }));
   } catch (err) {
@@ -454,7 +468,7 @@ export async function createLiveCustomer(payload: Omit<Customer, 'id' | 'isActiv
     });
 
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Failed to create customer');
     }
 
@@ -462,7 +476,11 @@ export async function createLiveCustomer(payload: Omit<Customer, 'id' | 'isActiv
     return {
       id: Number(item.id),
       customerCode: item.customerCode || undefined,
+      customerType: (item.customerType || 'B2C') as 'B2C' | 'B2B',
+      customerSegment: (item.customerSegment || 'SMALL') as 'SMALL' | 'LARGE',
       name: item.name,
+      companyName: item.companyName || undefined,
+      contactPerson: item.contactPerson || undefined,
       phone: item.phone || undefined,
       email: item.email || undefined,
       addressLine1: item.addressLine1 || undefined,
@@ -471,12 +489,124 @@ export async function createLiveCustomer(payload: Omit<Customer, 'id' | 'isActiv
       state: item.state || undefined,
       stateCode: item.stateCode || undefined,
       pincode: item.pincode || undefined,
+      shippingAddress: item.shippingAddress || undefined,
       gstin: item.gstin || undefined,
+      gstRegistered: Boolean(item.gstRegistered),
+      defaultDiscountPercentage: Number(item.defaultDiscountPercentage || 0),
+      notes: item.notes || undefined,
       isActive: Boolean(item.isActive),
     };
   } catch (err) {
     console.error('Failed to create live customer:', err);
     throw err;
+  }
+}
+
+export async function updateLiveCustomer(
+  id: number,
+  payload: Partial<Customer>
+): Promise<Customer | null> {
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/customers/${id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Customer update failed with status ${res.status}`);
+    }
+
+    const item = await res.json();
+    return {
+      id: Number(item.id),
+      customerCode: item.customerCode || undefined,
+      customerType: (item.customerType || 'B2C') as 'B2C' | 'B2B',
+      customerSegment: (item.customerSegment || 'SMALL') as 'SMALL' | 'LARGE',
+      name: item.name,
+      companyName: item.companyName || undefined,
+      contactPerson: item.contactPerson || undefined,
+      phone: item.phone || undefined,
+      email: item.email || undefined,
+      addressLine1: item.addressLine1 || undefined,
+      addressLine2: item.addressLine2 || undefined,
+      city: item.city || undefined,
+      state: item.state || undefined,
+      stateCode: item.stateCode || undefined,
+      pincode: item.pincode || undefined,
+      shippingAddress: item.shippingAddress || undefined,
+      gstin: item.gstin || undefined,
+      gstRegistered: Boolean(item.gstRegistered),
+      defaultDiscountPercentage: Number(item.defaultDiscountPercentage || 0),
+      notes: item.notes || undefined,
+      isActive: Boolean(item.isActive),
+    };
+  } catch (err) {
+    console.error('Failed to update live customer:', err);
+    throw err;
+  }
+}
+
+export async function fetchCustomerSummary(id: number): Promise<CustomerSummary | null> {
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_BASE}/customers/${id}/summary`, { headers });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const cust = data.customer;
+
+    return {
+      customer: {
+        id: Number(cust.id),
+        customerCode: cust.customerCode || undefined,
+        customerType: (cust.customerType || 'B2C') as 'B2C' | 'B2B',
+        customerSegment: (cust.customerSegment || 'SMALL') as 'SMALL' | 'LARGE',
+        name: cust.name,
+        companyName: cust.companyName || undefined,
+        contactPerson: cust.contactPerson || undefined,
+        phone: cust.phone || undefined,
+        email: cust.email || undefined,
+        addressLine1: cust.addressLine1 || undefined,
+        addressLine2: cust.addressLine2 || undefined,
+        city: cust.city || undefined,
+        state: cust.state || undefined,
+        stateCode: cust.stateCode || undefined,
+        pincode: cust.pincode || undefined,
+        shippingAddress: cust.shippingAddress || undefined,
+        gstin: cust.gstin || undefined,
+        gstRegistered: Boolean(cust.gstRegistered),
+        defaultDiscountPercentage: Number(cust.defaultDiscountPercentage || 0),
+        notes: cust.notes || undefined,
+        isActive: Boolean(cust.isActive),
+      },
+      totalOrders: Number(data.totalOrders || 0),
+      totalSpent: Number(data.totalSpent || 0),
+      averageOrderValue: Number(data.averageOrderValue || 0),
+      lastPurchaseDate: data.lastPurchaseDate || undefined,
+      isReturningCustomer: Boolean(data.isReturningCustomer),
+      recentInvoices: (data.recentInvoices || []).map((inv: any) => ({
+        invoiceId: Number(inv.invoiceId),
+        invoiceNumber: inv.invoiceNumber,
+        invoiceDate: inv.invoiceDate,
+        grandTotal: Number(inv.grandTotal || 0),
+        paymentStatus: inv.paymentStatus,
+        invoiceStatus: inv.invoiceStatus,
+        itemCount: Number(inv.itemCount || 0),
+      })),
+      frequentlyPurchasedProducts: (data.frequentlyPurchasedProducts || []).map((p: any) => ({
+        productId: Number(p.productId),
+        productName: p.productName,
+        sku: p.sku,
+        totalQuantity: Number(p.totalQuantity || 0),
+        purchaseCount: Number(p.purchaseCount || 0),
+      })),
+    };
+  } catch (err) {
+    console.warn('Error fetching customer summary:', err);
+    return null;
   }
 }
 

@@ -5,14 +5,10 @@ import {
   FileText,
   Activity,
   Users,
-  Settings,
   WifiOff,
-  ShieldCheck,
   Database,
   RefreshCw,
   Lock,
-  LogOut,
-  UserCheck,
   Repeat,
 } from 'lucide-react';
 import { CompanySetting } from '../types';
@@ -43,16 +39,15 @@ export const Header: React.FC<HeaderProps> = ({
   currentSession,
   onLockTerminal,
   onSwitchUser,
-  onLogout,
 }) => {
   const isCashier = currentSession?.role === 'BILLER';
 
   const allTabs = [
-    { id: 'billing', label: 'Point of Sale', icon: ShoppingCart, badge: cartCount > 0 ? cartCount : null, roles: ['ADMIN', 'MANAGER', 'BILLER', 'INVENTORY_MANAGER'] },
-    { id: 'invoices', label: 'Invoices & Sales', icon: FileText, roles: ['ADMIN', 'MANAGER', 'BILLER'] },
-    { id: 'inventory', label: 'Inventory & Stock', icon: Package, roles: ['ADMIN', 'MANAGER', 'INVENTORY_MANAGER'] },
-    { id: 'movements', label: 'Stock Audit Ledger', icon: Activity, roles: ['ADMIN', 'MANAGER', 'INVENTORY_MANAGER'] },
-    { id: 'customers', label: 'Customer Master', icon: Users, roles: ['ADMIN', 'MANAGER', 'BILLER'] },
+    { id: 'billing', label: 'POS', icon: ShoppingCart, badge: cartCount > 0 ? cartCount : null, roles: ['ADMIN', 'MANAGER', 'BILLER', 'INVENTORY_MANAGER'] },
+    { id: 'invoices', label: 'Invoices', icon: FileText, roles: ['ADMIN', 'MANAGER', 'BILLER'] },
+    { id: 'inventory', label: 'Inventory', icon: Package, roles: ['ADMIN', 'MANAGER', 'INVENTORY_MANAGER'] },
+    { id: 'movements', label: 'Ledger', icon: Activity, roles: ['ADMIN', 'MANAGER', 'INVENTORY_MANAGER'] },
+    { id: 'customers', label: 'Customers', icon: Users, roles: ['ADMIN', 'MANAGER', 'BILLER'] },
   ];
 
   // Filter tabs according to user role
@@ -63,73 +58,140 @@ export const Header: React.FC<HeaderProps> = ({
   const getRoleBadgeStyle = (role?: string) => {
     switch (role) {
       case 'ADMIN':
-        return { bg: 'rgba(168, 85, 247, 0.15)', text: '#c084fc', border: 'rgba(168, 85, 247, 0.3)' };
+        return { bg: '#000000', text: '#ffffff', border: '#000000' };
       case 'MANAGER':
-        return { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24', border: 'rgba(245, 158, 11, 0.3)' };
+        return { bg: '#f4f4f5', text: '#09090b', border: '#d4d4d8' };
       case 'BILLER':
       default:
-        return { bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399', border: 'rgba(16, 185, 129, 0.3)' };
+        return { bg: '#f4f4f5', text: '#09090b', border: '#e4e4e7' };
     }
   };
 
   const badgeColors = getRoleBadgeStyle(currentSession?.role);
 
+  // Clean initials generator (avoids parenthesis or special characters like "R(")
+  const getInitials = (name?: string) => {
+    if (!name) return 'OP';
+    const clean = name.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+    const parts = clean.split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return 'OP';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   return (
-    <header style={{
-      background: 'rgba(17, 24, 39, 0.95)',
-      backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid var(--border-color)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-      padding: '0 24px'
-    }}>
-      <div style={{
-        maxWidth: '1600px',
-        margin: '0 auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: '70px',
-        gap: '16px'
-      }}>
-        {/* Brand & Store Name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35)'
-          }}>
-            <ShoppingCart size={22} color="#ffffff" />
+    <header
+      style={{
+        width: '100%',
+        background: '#ffffff',
+        borderBottom: '1px solid #e4e4e7',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        padding: 0,
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: '1600px',
+          width: '100%',
+          margin: '0 auto',
+          padding: '0 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: '64px',
+          gap: '12px',
+          boxSizing: 'border-box',
+          minWidth: 0,
+        }}
+      >
+        {/* Brand & Store Identity */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: '#000000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+              border: '1px solid #000000',
+            }}
+          >
+            <ShoppingCart size={18} color="#ffffff" strokeWidth={2.4} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontWeight: 800, fontSize: '1.15rem', color: '#fff', letterSpacing: '-0.02em' }}>
+              <span
+                style={{
+                  fontWeight: 800,
+                  fontSize: '1.05rem',
+                  color: '#09090b',
+                  letterSpacing: '-0.02em',
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {company.companyName}
               </span>
               {isLiveDb ? (
-                <span className="badge badge-success" style={{ fontSize: '0.68rem', padding: '3px 9px', display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '20px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: '#000000',
+                    color: '#ffffff',
+                    border: '1px solid #000000',
+                  }}
+                >
                   <Database size={11} /> PostgreSQL Live
                 </span>
               ) : (
-                <span className="badge badge-warning" style={{ fontSize: '0.68rem', padding: '3px 9px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '20px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: '#f4f4f5',
+                    color: '#09090b',
+                    border: '1px solid #e4e4e7',
+                  }}
+                >
                   <WifiOff size={11} /> Offline Cache
                 </span>
               )}
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              GSTIN: <span className="mono" style={{ color: 'var(--text-secondary)' }}>{company.gstin || '29ABCDE1234F1Z5'}</span> • Terminal #01 {isLiveDb ? '• Port 8080' : ''}
+            <div className="header-brand-sub" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              GSTIN: <span className="mono" style={{ color: 'var(--text-secondary)' }}>{company.gstin || '29ABCDE1234F1Z5'}</span> • Terminal #01
             </div>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        {/* Segmented Navigation Tab Bar */}
+        <nav
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '3px',
+            background: '#f4f4f5',
+            padding: '3px',
+            borderRadius: '12px',
+            border: '1px solid #e4e4e7',
+            flexShrink: 0,
+          }}
+        >
           {visibleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -140,32 +202,46 @@ export const Header: React.FC<HeaderProps> = ({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 16px',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: isActive ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2))' : 'transparent',
-                  color: isActive ? '#60a5fa' : 'var(--text-secondary)',
-                  fontWeight: isActive ? 600 : 500,
-                  fontSize: '0.875rem',
+                  gap: '6px',
+                  padding: '6px 11px',
+                  borderRadius: '8px',
+                  border: isActive ? '1px solid #000000' : '1px solid transparent',
+                  background: isActive ? '#000000' : 'transparent',
+                  color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                  fontWeight: isActive ? 800 : 600,
+                  fontSize: '0.82rem',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                   position: 'relative',
-                  outline: isActive ? '1px solid rgba(59, 130, 246, 0.35)' : 'none'
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = '#000000';
+                    e.currentTarget.style.background = '#e4e4e7';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                    e.currentTarget.style.background = 'transparent';
+                  }
                 }}
               >
-                <Icon size={18} />
+                <Icon size={15} strokeWidth={isActive ? 2.4 : 1.8} />
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span style={{
-                    background: 'var(--accent-blue)',
-                    color: '#fff',
-                    borderRadius: '9999px',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    padding: '1px 6px',
-                    marginLeft: '2px'
-                  }}>
+                  <span
+                    style={{
+                      background: isActive ? '#ffffff' : '#000000',
+                      color: isActive ? '#000000' : '#ffffff',
+                      borderRadius: '9999px',
+                      fontSize: '0.68rem',
+                      fontWeight: 800,
+                      padding: '1px 6px',
+                      marginLeft: '2px',
+                    }}
+                  >
                     {tab.badge}
                   </span>
                 )}
@@ -175,7 +251,7 @@ export const Header: React.FC<HeaderProps> = ({
         </nav>
 
         {/* Operator Profile, Lock Screen, and Sync Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
           {/* Offline Sync Queue Button */}
           <button
             onClick={onOpenSyncQueue}
@@ -183,29 +259,30 @@ export const Header: React.FC<HeaderProps> = ({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              background: pendingSyncCount > 0 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(31, 41, 55, 0.7)',
-              border: pendingSyncCount > 0 ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-color)',
-              color: pendingSyncCount > 0 ? '#fbbf24' : 'var(--text-secondary)',
-              padding: '6px 12px',
-              borderRadius: '10px',
-              fontSize: '0.8rem',
-              fontWeight: 600,
+              gap: '4px',
+              height: '34px',
+              background: pendingSyncCount > 0 ? '#000000' : '#ffffff',
+              border: pendingSyncCount > 0 ? '1px solid #000000' : '1px solid #e4e4e7',
+              color: pendingSyncCount > 0 ? '#ffffff' : 'var(--text-secondary)',
+              padding: '0 8px',
+              borderRadius: '8px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 0.15s ease',
             }}
           >
-            <RefreshCw size={14} className={pendingSyncCount > 0 ? 'animate-spin' : ''} />
-            <span>Sync</span>
+            <RefreshCw size={13} className={pendingSyncCount > 0 ? 'animate-spin' : ''} />
+            <span className="header-sync-label">Sync</span>
             {pendingSyncCount > 0 && (
               <span
                 style={{
-                  background: '#f59e0b',
-                  color: '#000',
+                  background: '#ffffff',
+                  color: '#000000',
                   borderRadius: '9999px',
-                  fontSize: '0.7rem',
+                  fontSize: '0.65rem',
                   fontWeight: 800,
-                  padding: '1px 6px',
+                  padding: '1px 5px',
                   marginLeft: '2px',
                 }}
               >
@@ -219,62 +296,61 @@ export const Header: React.FC<HeaderProps> = ({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              background: 'rgba(31, 41, 55, 0.75)',
-              padding: '5px 12px 5px 8px',
-              borderRadius: '12px',
-              border: '1px solid var(--border-color)',
+              gap: '6px',
+              background: '#ffffff',
+              padding: '3px 8px 3px 4px',
+              borderRadius: '8px',
+              border: '1px solid #e4e4e7',
+              height: '34px',
             }}
           >
             {/* Operator Avatar */}
             <div
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                background: isCashier
-                  ? 'linear-gradient(135deg, #10b981, #059669)'
-                  : 'linear-gradient(135deg, #8b5cf6, #6366f1)',
+                width: '26px',
+                height: '26px',
+                borderRadius: '6px',
+                background: '#000000',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#fff',
-                fontSize: '0.75rem',
+                color: '#ffffff',
+                fontSize: '0.7rem',
                 fontWeight: 800,
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+                letterSpacing: '0.02em',
               }}
             >
-              {currentSession?.employeeName
-                ?.split(' ')
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase() || 'OP'}
+              {getInitials(currentSession?.employeeName)}
             </div>
 
             {/* Operator Details */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '0.825rem', fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>
-                  {currentSession?.employeeName || 'Operator'}
-                </span>
-                <span
-                  style={{
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    padding: '1px 6px',
-                    borderRadius: '4px',
-                    background: badgeColors.bg,
-                    color: badgeColors.text,
-                    border: `1px solid ${badgeColors.border}`,
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {currentSession?.role === 'BILLER' ? 'CASHIER' : currentSession?.role || 'ADMIN'}
-                </span>
-              </div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: 1.2 }}>
-                {currentSession?.shift || 'Active Shift'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span
+                className="header-operator-name"
+                style={{
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  color: '#09090b',
+                  whiteSpace: 'nowrap',
+                }}
+                title={currentSession?.employeeName || 'Operator'}
+              >
+                {currentSession?.employeeName?.split(' ')[0] || 'Operator'}
+              </span>
+              <span
+                style={{
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  padding: '1px 5px',
+                  borderRadius: '4px',
+                  background: badgeColors.bg,
+                  color: badgeColors.text,
+                  border: `1px solid ${badgeColors.border}`,
+                  lineHeight: 1.2,
+                }}
+              >
+                {currentSession?.role === 'BILLER' ? 'CASHIER' : currentSession?.role || 'ADMIN'}
               </span>
             </div>
           </div>
@@ -287,25 +363,27 @@ export const Header: React.FC<HeaderProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              background: 'rgba(31, 41, 55, 0.7)',
-              border: '1px solid var(--border-color)',
-              color: '#94a3b8',
+              width: '34px',
+              height: '34px',
+              borderRadius: '8px',
+              background: '#ffffff',
+              border: '1px solid #e4e4e7',
+              color: '#09090b',
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#60a5fa';
-              e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+              e.currentTarget.style.color = '#ffffff';
+              e.currentTarget.style.borderColor = '#000000';
+              e.currentTarget.style.background = '#000000';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#94a3b8';
-              e.currentTarget.style.borderColor = 'var(--border-color)';
+              e.currentTarget.style.color = '#09090b';
+              e.currentTarget.style.borderColor = '#e4e4e7';
+              e.currentTarget.style.background = '#ffffff';
             }}
           >
-            <Lock size={16} />
+            <Lock size={14} />
           </button>
 
           {/* Switch Operator / Logout Button */}
@@ -315,30 +393,34 @@ export const Header: React.FC<HeaderProps> = ({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '10px',
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '1px solid rgba(239, 68, 68, 0.25)',
-              color: '#f87171',
-              fontSize: '0.8rem',
-              fontWeight: 600,
+              gap: '4px',
+              height: '34px',
+              padding: '0 8px',
+              borderRadius: '8px',
+              background: '#ffffff',
+              border: '1px solid #e4e4e7',
+              color: '#09090b',
+              fontSize: '0.78rem',
+              fontWeight: 700,
               cursor: 'pointer',
-              transition: 'all 0.2s',
+              transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.22)';
+              e.currentTarget.style.background = '#000000';
+              e.currentTarget.style.color = '#ffffff';
+              e.currentTarget.style.borderColor = '#000000';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.12)';
+              e.currentTarget.style.background = '#ffffff';
+              e.currentTarget.style.color = '#09090b';
+              e.currentTarget.style.borderColor = '#e4e4e7';
             }}
           >
-            <Repeat size={14} />
-            <span>Switch</span>
+            <Repeat size={13} />
+            <span className="header-switch-label">Switch</span>
           </button>
         </div>
       </div>
     </header>
   );
 };
-

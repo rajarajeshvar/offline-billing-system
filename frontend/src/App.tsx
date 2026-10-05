@@ -66,7 +66,18 @@ export const App: React.FC = () => {
 
   const [customers, setCustomers] = useState<Customer[]>(() => {
     const saved = localStorage.getItem('obs_customers');
-    return saved ? JSON.parse(saved) : initialCustomers;
+    if (!saved) return initialCustomers;
+    try {
+      const parsed: Customer[] = JSON.parse(saved);
+      return parsed.map((c) => ({
+        ...c,
+        customerType: c.customerType || (c.gstin ? 'B2B' : 'B2C'),
+        customerSegment: c.customerSegment || (c.gstin ? 'LARGE' : 'SMALL'),
+        defaultDiscountPercentage: c.defaultDiscountPercentage ?? 0,
+      }));
+    } catch {
+      return initialCustomers;
+    }
   });
 
   const [invoices, setInvoices] = useState<Invoice[]>(() => {
@@ -602,7 +613,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Workspace Body */}
-      <main style={{ flex: 1, maxWidth: '1600px', width: '100%', margin: '0 auto', padding: '24px' }}>
+      <main style={{ flex: 1, maxWidth: '1600px', width: '100%', margin: '0 auto', padding: '16px 20px', boxSizing: 'border-box', minWidth: 0 }}>
         {activeTab === 'billing' && (
           <BillingTerminal
             products={products}
@@ -640,6 +651,7 @@ export const App: React.FC = () => {
         {activeTab === 'customers' && (
           <CustomerMaster
             customers={customers}
+            invoices={invoices}
             onAddCustomer={handleAddCustomer}
           />
         )}
@@ -680,6 +692,10 @@ export const App: React.FC = () => {
             }
           }}
           onUnlockSuccess={() => {
+            setIsLocked(false);
+            setTerminalLocked(false);
+          }}
+          onClose={() => {
             setIsLocked(false);
             setTerminalLocked(false);
           }}

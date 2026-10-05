@@ -198,7 +198,11 @@ CREATE INDEX idx_products_is_active ON products (is_active);
 CREATE TABLE customers (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     customer_code VARCHAR(50),
+    customer_type VARCHAR(20) NOT NULL DEFAULT 'B2C',
+    customer_segment VARCHAR(20) NOT NULL DEFAULT 'SMALL',
     name VARCHAR(255) NOT NULL,
+    company_name VARCHAR(255),
+    contact_person VARCHAR(100),
     phone VARCHAR(25),
     email VARCHAR(255),
     address_line1 VARCHAR(255),
@@ -207,17 +211,28 @@ CREATE TABLE customers (
     state VARCHAR(100),
     state_code VARCHAR(10),
     pincode VARCHAR(20),
+    shipping_address TEXT,
     gstin VARCHAR(20),
+    gst_registered BOOLEAN NOT NULL DEFAULT FALSE,
+    default_discount_percentage NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
+    notes TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_customers_customer_code UNIQUE (customer_code),
-    CONSTRAINT chk_customers_name_not_empty CHECK (length(trim(name)) > 0)
+    CONSTRAINT chk_customers_name_not_empty CHECK (length(trim(name)) > 0),
+    CONSTRAINT chk_customers_type CHECK (customer_type IN ('B2C', 'B2B')),
+    CONSTRAINT chk_customers_segment CHECK (customer_segment IN ('SMALL', 'LARGE')),
+    CONSTRAINT chk_customers_discount_range CHECK (default_discount_percentage >= 0.00 AND default_discount_percentage <= 100.00)
 );
 
 CREATE INDEX idx_customers_phone ON customers (phone) WHERE phone IS NOT NULL;
 CREATE INDEX idx_customers_name ON customers (name);
 CREATE INDEX idx_customers_is_active ON customers (is_active);
+CREATE INDEX idx_customers_type ON customers (customer_type);
+CREATE INDEX idx_customers_segment ON customers (customer_segment);
+CREATE INDEX idx_customers_company_name ON customers (company_name) WHERE company_name IS NOT NULL;
+CREATE INDEX idx_customers_gstin ON customers (gstin) WHERE gstin IS NOT NULL;
 
 -- ----------------------------------------------------------------------------
 -- 9. INVOICES

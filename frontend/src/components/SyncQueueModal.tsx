@@ -56,10 +56,10 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
-          background: 'var(--bg-secondary)',
+          background: '#ffffff',
           borderRadius: '16px',
           border: '1px solid var(--border-color)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
           overflow: 'hidden',
         }}
       >
@@ -71,7 +71,7 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: 'rgba(31, 41, 55, 0.4)',
+            background: '#fafafa',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -80,17 +80,17 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
                 width: '36px',
                 height: '36px',
                 borderRadius: '10px',
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                background: '#000000',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#fff',
+                color: '#ffffff',
               }}
             >
               <RefreshCw size={20} className={isSyncing ? 'animate-spin' : ''} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#fff' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
                 Offline Sync Queue & Reconciliation
               </h2>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
@@ -120,25 +120,25 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
             gridTemplateColumns: 'repeat(4, 1fr)',
             gap: '12px',
             padding: '16px 24px',
-            background: 'rgba(17, 24, 39, 0.5)',
+            background: '#fafafa',
             borderBottom: '1px solid var(--border-color)',
           }}
         >
           <div style={{ background: 'var(--bg-tertiary)', padding: '12px 16px', borderRadius: '10px' }}>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total In Queue</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff' }}>{queue.length}</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>{queue.length}</div>
           </div>
           <div style={{ background: 'var(--bg-tertiary)', padding: '12px 16px', borderRadius: '10px' }}>
-            <div style={{ fontSize: '0.75rem', color: '#fbbf24' }}>Pending Sync</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fbbf24' }}>{pendingCount}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Pending Sync</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>{pendingCount}</div>
           </div>
           <div style={{ background: 'var(--bg-tertiary)', padding: '12px 16px', borderRadius: '10px' }}>
-            <div style={{ fontSize: '0.75rem', color: '#34d399' }}>Reconciled to DB</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#34d399' }}>{resolvedCount}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Reconciled to DB</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>{resolvedCount}</div>
           </div>
           <div style={{ background: 'var(--bg-tertiary)', padding: '12px 16px', borderRadius: '10px' }}>
-            <div style={{ fontSize: '0.75rem', color: '#f87171' }}>Stock Deficit Conflicts</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: conflictCount > 0 ? '#f87171' : 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Stock Deficit Conflicts</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: conflictCount > 0 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
               {conflictCount}
             </div>
           </div>
@@ -162,8 +162,9 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
               style={{
                 fontSize: '0.8rem',
                 padding: '6px 12px',
-                background: activeFilter === 'ALL' ? 'var(--accent-blue)' : 'var(--bg-tertiary)',
-                color: activeFilter === 'ALL' ? '#fff' : 'var(--text-secondary)',
+                background: activeFilter === 'ALL' ? '#000000' : 'var(--bg-tertiary)',
+                color: activeFilter === 'ALL' ? '#ffffff' : 'var(--text-secondary)',
+                border: activeFilter === 'ALL' ? '1px solid #000000' : '1px solid var(--border-color)',
               }}
             >
               All ({queue.length})
@@ -174,8 +175,9 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
               style={{
                 fontSize: '0.8rem',
                 padding: '6px 12px',
-                background: activeFilter === 'PENDING' ? 'var(--accent-blue)' : 'var(--bg-tertiary)',
-                color: activeFilter === 'PENDING' ? '#fff' : 'var(--text-secondary)',
+                background: activeFilter === 'PENDING' ? '#000000' : 'var(--bg-tertiary)',
+                color: activeFilter === 'PENDING' ? '#ffffff' : 'var(--text-secondary)',
+                border: activeFilter === 'PENDING' ? '1px solid #000000' : '1px solid var(--border-color)',
               }}
             >
               Pending ({pendingCount})
@@ -186,8 +188,9 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
               style={{
                 fontSize: '0.8rem',
                 padding: '6px 12px',
-                background: activeFilter === 'RESOLVED' ? 'var(--accent-blue)' : 'var(--bg-tertiary)',
-                color: activeFilter === 'RESOLVED' ? '#fff' : 'var(--text-secondary)',
+                background: activeFilter === 'RESOLVED' ? '#000000' : 'var(--bg-tertiary)',
+                color: activeFilter === 'RESOLVED' ? '#ffffff' : 'var(--text-secondary)',
+                border: activeFilter === 'RESOLVED' ? '1px solid #000000' : '1px solid var(--border-color)',
               }}
             >
               Synced ({resolvedCount})
@@ -241,7 +244,7 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span className="mono" style={{ fontWeight: 700, color: '#fff', fontSize: '0.9rem' }}>
+                      <span className="mono" style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>
                         {item.offlineInvoiceNumber}
                       </span>
                       {item.serverInvoiceNumber && (
@@ -250,7 +253,7 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            color: '#34d399',
+                            color: 'var(--text-secondary)',
                             fontSize: '0.8rem',
                             fontWeight: 600,
                           }}
@@ -276,7 +279,7 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
                         </span>
                       )}
                       {item.status === 'CONFLICT_RESOLVED' && (
-                        <span className="badge" style={{ fontSize: '0.75rem', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
+                        <span className="badge" style={{ fontSize: '0.75rem', background: '#f4f4f5', color: '#09090b', border: '1px solid #e4e4e7' }}>
                           <AlertTriangle size={12} /> Conflict Reconciled
                         </span>
                       )}
@@ -292,12 +295,12 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
                   {item.conflictMessage && (
                     <div
                       style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        background: '#fef2f2',
+                        border: '1px solid #fecaca',
                         borderRadius: '8px',
                         padding: '8px 12px',
                         fontSize: '0.8rem',
-                        color: '#fca5a5',
+                        color: '#991b1b',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
@@ -319,13 +322,13 @@ export const SyncQueueModal: React.FC<SyncQueueModalProps> = ({
                     }}
                   >
                     <div>
-                      <span>Customer: <strong style={{ color: '#fff' }}>{item.customerName || 'Walk-in'}</strong></span>
+                      <span>Customer: <strong style={{ color: 'var(--text-primary)' }}>{item.customerName || 'Walk-in'}</strong></span>
                       <span style={{ margin: '0 8px' }}>•</span>
-                      <span>Items: <strong style={{ color: '#fff' }}>{item.items.length}</strong></span>
+                      <span>Items: <strong style={{ color: 'var(--text-primary)' }}>{item.items.length}</strong></span>
                       <span style={{ margin: '0 8px' }}>•</span>
                       <span>Offline Time: {new Date(item.offlineTimestamp).toLocaleTimeString()}</span>
                     </div>
-                    <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--accent-emerald)' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                       ₹{item.grandTotal.toFixed(2)}
                     </div>
                   </div>

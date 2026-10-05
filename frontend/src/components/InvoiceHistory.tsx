@@ -31,21 +31,21 @@ export const InvoiceHistory: React.FC<InvoiceHistoryProps> = ({ invoices, onView
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
         <div className="glass-panel" style={{ padding: '16px' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Total Invoices Generated</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
             {invoices.length}
           </div>
         </div>
 
         <div className="glass-panel" style={{ padding: '16px' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Cumulative Gross Billing</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent-emerald)', marginTop: '4px' }} className="mono">
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }} className="mono">
             ₹{totalSalesRevenue.toFixed(2)}
           </div>
         </div>
 
         <div className="glass-panel" style={{ padding: '16px' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Settled / Paid Invoices</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--accent-blue)', marginTop: '4px' }}>
+          <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
             {invoices.filter((i) => i.paymentStatus === 'PAID').length}
           </div>
         </div>
@@ -72,10 +72,12 @@ export const InvoiceHistory: React.FC<InvoiceHistoryProps> = ({ invoices, onView
               onClick={() => setStatusFilter(status)}
               className="btn"
               style={{
-                background: statusFilter === status ? 'var(--accent-blue)' : 'var(--bg-tertiary)',
-                color: statusFilter === status ? '#fff' : 'var(--text-secondary)',
+                background: statusFilter === status ? '#000000' : '#ffffff',
+                color: statusFilter === status ? '#ffffff' : 'var(--text-secondary)',
+                border: statusFilter === status ? '1px solid #000000' : '1px solid #e4e4e7',
                 fontSize: '0.8rem',
-                padding: '6px 12px'
+                fontWeight: 700,
+                padding: '6px 14px',
               }}
             >
               {status}
@@ -111,7 +113,7 @@ export const InvoiceHistory: React.FC<InvoiceHistoryProps> = ({ invoices, onView
                 filtered.map((inv) => (
                   <tr key={inv.id}>
                     <td>
-                      <div style={{ fontWeight: 700, color: '#fff' }} className="mono">
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary)' }} className="mono">
                         {inv.invoiceNumber}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -133,7 +135,7 @@ export const InvoiceHistory: React.FC<InvoiceHistoryProps> = ({ invoices, onView
                     <td style={{ textAlign: 'right' }} className="mono">
                       ₹{inv.taxableAmount.toFixed(2)}
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: 800, color: 'var(--accent-blue)' }} className="mono">
+                    <td style={{ textAlign: 'right', fontWeight: 800, color: 'var(--text-primary)' }} className="mono">
                       ₹{inv.grandTotal.toFixed(2)}
                     </td>
                     <td>

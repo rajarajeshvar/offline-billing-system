@@ -129,6 +129,10 @@ public class InvoiceService {
         BigDecimal igstTotal = BigDecimal.ZERO;
         BigDecimal cessTotal = BigDecimal.ZERO;
 
+        BigDecimal customerConcession = (customer != null && customer.getDefaultDiscountPercentage() != null)
+                ? customer.getDefaultDiscountPercentage()
+                : BigDecimal.ZERO;
+
         List<InvoiceItem> invoiceItems = new ArrayList<>();
         List<StockMovement> stockMovements = new ArrayList<>();
 
@@ -171,11 +175,34 @@ public class InvoiceService {
                 }
             }
 
-            // Price & Tax calculation
-            BigDecimal unitPrice = itemDto.getUnitPrice() != null ? itemDto.getUnitPrice() : product.getSellingPrice();
+            // Price & Tax calculation (Concession & Safety)
+            BigDecimal unitPrice = itemDto.getUnitPrice();
+            if (unitPrice == null) {
+                unitPrice = product.getSellingPrice();
+            } else if (!isManagerOrAdmin(currentUser) && unitPrice.compareTo(product.getSellingPrice()) != 0) {
+                unitPrice = product.getSellingPrice();
+            }
+            if (unitPrice.compareTo(BigDecimal.ZERO) < 0) {
+                throw new BusinessValidationException("Unit price cannot be negative.");
+            }
+
             BigDecimal rawLineTotal = unitPrice.multiply(quantity).setScale(2, RoundingMode.HALF_UP);
 
-            BigDecimal discountPct = itemDto.getDiscountPercentage() != null ? itemDto.getDiscountPercentage() : BigDecimal.ZERO;
+            BigDecimal discountPct = itemDto.getDiscountPercentage();
+            if (discountPct == null) {
+                discountPct = customerConcession;
+            }
+
+            if (discountPct.compareTo(BigDecimal.ZERO) < 0 || discountPct.compareTo(BigDecimal.valueOf(100)) > 0) {
+                throw new BusinessValidationException("Discount percentage must be between 0.00% and 100.00%.");
+            }
+
+            if (!isManagerOrAdmin(currentUser) && discountPct.compareTo(customerConcession) > 0) {
+                throw new BusinessValidationException(String.format(
+                        "Biller role cannot apply a discount of %.2f%% exceeding authorized customer concession of %.2f%%. Manager authorization required.",
+                        discountPct, customerConcession));
+            }
+
             BigDecimal discountAmt = rawLineTotal.multiply(discountPct)
                     .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
@@ -381,6 +408,10 @@ public class InvoiceService {
         Map<Long, Product> productMap = products.stream()
                 .collect(Collectors.toMap(Product::getId, p -> p));
 
+        BigDecimal customerConcession = (customer != null && customer.getDefaultDiscountPercentage() != null)
+                ? customer.getDefaultDiscountPercentage()
+                : BigDecimal.ZERO;
+
         List<Stock> lockedStockRows = new ArrayList<>();
         List<StockMovement> stockMovements = new ArrayList<>();
         List<InvoiceItem> invoiceItems = new ArrayList<>();
@@ -436,9 +467,15 @@ public class InvoiceService {
             }
 
             BigDecimal unitPrice = itemDto.getUnitPrice() != null ? itemDto.getUnitPrice() : product.getSellingPrice();
+            if (unitPrice.compareTo(BigDecimal.ZERO) < 0) {
+                unitPrice = product.getSellingPrice();
+            }
             BigDecimal rawLineTotal = unitPrice.multiply(quantity).setScale(2, RoundingMode.HALF_UP);
 
-            BigDecimal discountPct = itemDto.getDiscountPercentage() != null ? itemDto.getDiscountPercentage() : BigDecimal.ZERO;
+            BigDecimal discountPct = itemDto.getDiscountPercentage() != null ? itemDto.getDiscountPercentage() : customerConcession;
+            if (discountPct.compareTo(BigDecimal.ZERO) < 0) discountPct = BigDecimal.ZERO;
+            if (discountPct.compareTo(BigDecimal.valueOf(100)) > 0) discountPct = BigDecimal.valueOf(100);
+
             BigDecimal discountAmt = rawLineTotal.multiply(discountPct)
                     .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
@@ -706,4 +743,11 @@ public class InvoiceService {
                 .items(items)
                 .build();
     }
+
+    private boolean isManagerOrAdmin(User user) {
+        if (user == null || user.getRole() == null) return false;
+        String roleName = user.getRole().getName();
+        return "ADMIN".equalsIgnoreCase(roleName) || "MANAGER".equalsIgnoreCase(roleName);
+    }
 }
+

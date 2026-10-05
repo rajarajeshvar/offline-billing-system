@@ -13,7 +13,7 @@ export const StockMovementLedger: React.FC<StockMovementLedgerProps> = ({ moveme
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Activity size={24} color="var(--accent-blue)" />
           <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               Stock Movement Audit Ledger
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -52,7 +52,7 @@ export const StockMovementLedger: React.FC<StockMovementLedgerProps> = ({ moveme
                       {new Date(mov.createdAt).toLocaleString()}
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600, color: '#fff' }}>{mov.productName}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{mov.productName}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }} className="mono">
                         {mov.sku}
                       </div>
@@ -75,7 +75,7 @@ export const StockMovementLedger: React.FC<StockMovementLedgerProps> = ({ moveme
                         {isInward ? '+' : '-'}{mov.quantity}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: '#fff' }} className="mono">
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--text-primary)' }} className="mono">
                       {mov.quantityAfter}
                     </td>
                     <td style={{ fontSize: '0.85rem' }}>
@@ -87,7 +87,7 @@ export const StockMovementLedger: React.FC<StockMovementLedgerProps> = ({ moveme
                       )}
                     </td>
                     <td>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--accent-cyan)' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                         @{mov.createdBy}
                       </span>
                     </td>

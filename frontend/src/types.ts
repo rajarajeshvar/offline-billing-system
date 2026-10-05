@@ -54,7 +54,11 @@ export interface Product {
 export interface Customer {
   id: number;
   customerCode?: string;
+  customerType: 'B2C' | 'B2B';
+  customerSegment: 'SMALL' | 'LARGE';
   name: string;
+  companyName?: string;
+  contactPerson?: string;
   phone?: string;
   email?: string;
   addressLine1?: string;
@@ -63,8 +67,41 @@ export interface Customer {
   state?: string;
   stateCode?: string;
   pincode?: string;
+  shippingAddress?: string;
   gstin?: string;
+  gstRegistered?: boolean;
+  defaultDiscountPercentage?: number;
+  notes?: string;
   isActive: boolean;
+}
+
+export interface CustomerOrderSummary {
+  invoiceId: number;
+  invoiceNumber: string;
+  invoiceDate: string;
+  grandTotal: number;
+  paymentStatus: string;
+  invoiceStatus?: string;
+  itemCount: number;
+}
+
+export interface FrequentlyPurchasedProduct {
+  productId: number;
+  productName: string;
+  sku: string;
+  totalQuantity: number;
+  purchaseCount: number;
+}
+
+export interface CustomerSummary {
+  customer: Customer;
+  totalOrders: number;
+  totalSpent: number;
+  averageOrderValue: number;
+  lastPurchaseDate?: string;
+  isReturningCustomer: boolean;
+  recentInvoices: CustomerOrderSummary[];
+  frequentlyPurchasedProducts: FrequentlyPurchasedProduct[];
 }
 
 export interface InvoiceItem {
